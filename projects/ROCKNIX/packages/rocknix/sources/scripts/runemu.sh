@@ -250,7 +250,11 @@ case ${EMULATOR} in
       "scummvm")
         GAMEDIR=$(cat "${ROMNAME}" | awk 'BEGIN {FS="\""}; {print $2}')
         cd "${GAMEDIR}"
-        RUNTHIS='${RUN_SHELL} /usr/bin/start_scummvm.sh libretro .'
+        if [ "${EMULATOR}" == "retroarch" ]; then
+            RUNTHIS='${RUN_SHELL} /usr/bin/start_scummvm.sh libretro .'
+        else
+            RUNTHIS='${RUN_SHELL} /usr/bin/start_scummvm.sh "${ROMNAME}" "${PLATFORM}" "${CORE}" "${EMULATOR}"'
+        fi
       ;;
     esac
 
@@ -279,10 +283,10 @@ case ${EMULATOR} in
       "setup")
         RUNTHIS='${RUN_SHELL} "${ROMNAME}"'
       ;;
-      "gamecube"|"triforce")
+      "gamecube")
         RUNTHIS='${RUN_SHELL} /usr/bin/start_dolphin_gc.sh "${ROMNAME}" "${PLATFORM}" "${CORE}"'
       ;;
-      "wii"|"wiiware")
+      "wii")
         RUNTHIS='${RUN_SHELL} /usr/bin/start_dolphin_wii.sh "${ROMNAME}" "${PLATFORM}" "${CORE}"'
       ;;
       "ports")
@@ -378,15 +382,11 @@ CPU_GOVERNOR=$(get_setting "cpugovernor" "${PLATFORM}" "${ROMNAME##*/}")
 ${VERBOSE} && log $0 "Set emulation performance mode to (${CPU_GOVERNOR})"
 ${CPU_GOVERNOR}
 
-### Check whether MangoHud is supported and enabled
-if [ "${DEVICE_MANGOHUD_SUPPORT}" == "true" ]; then
-  MANGOHUD_ENABLED=$(get_setting "rocknix.mangohud.enabled"  "${PLATFORM}" "${ROMNAME##*/}")
-  if [ "${MANGOHUD_ENABLED}" = "1" ]; then
-    # Enable GPU profiling and MangoHud
-    gpu_profiling "on"
-    RUNTHIS="/usr/bin/mangohud ${RUNTHIS}"
-    ${VERBOSE} && log $0 "Enabling MangoHud"
-  fi
+# Check for MangoHud support and turn MangoHud off by defualt, will add ES feature later
+MANGOHUD_ENABLED=$(get_setting "rocknix.mangohud.enabled"  "${PLATFORM}" "${ROMNAME##*/}")
+if [ "${MANGOHUD_ENABLED}" = "1" ]; then
+  RUNTHIS="/usr/bin/mangohud ${RUNTHIS}"
+  ${VERBOSE} && log $0 "Enabling MangoHud"
 fi
 
 # If the rom is a shell script just execute it, useful for DOSBOX and ScummVM scan scripts
@@ -404,15 +404,6 @@ fi
 performance
 
 clear_screen
-
-### Disable touch on the secondary screen for dual screen devices
-if [[ "${DEVICE_HAS_DUAL_SCREEN}" == "true" ]]; then
-  # Disable touch events for Retroid Pocket devices to prevent focus loss
-  if [[ "${QUIRK_DEVICE}" == "Retroid Pocket 5" || "${QUIRK_DEVICE}" == "Retroid Pocket Flip2" || "${QUIRK_DEVICE}" == "Retroid Pocket Mini" || "${QUIRK_DEVICE}" == "Retroid Pocket Mini V2" ]]; then
-    swaymsg input "0:0:generic_ft5x06_(a0)" events disabled
-    swaymsg input "0:0:generic_ft5x06_(8d)" events disabled
-  fi
-fi
 
 ### Go back to system display mode , if we had specialized mode defined
 DISPLAY_MODE=$(get_setting "display_mode" "${PLATFORM}" "${ROMNAME##*/}")
@@ -458,9 +449,6 @@ then
 else
         onlinethreads all 1 &
 fi
-
-### Disable GPU profiling
-gpu_profiling "off"
 
 ### Backup save games
 CLOUD_BACKUP=$(get_setting "cloud.backup")

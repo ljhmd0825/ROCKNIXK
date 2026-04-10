@@ -43,6 +43,16 @@ if [ ! -d "${CONFIG_DIR}" ]; then
  cp -rf /usr/config/scummvm/* ${CONFIG_DIR}/
 fi
 
+if [ ! -d "/storage/.config/scummvm-grim/" ]; then
+    mkdir -p /storage/.config/scummvm-grim
+    cp -rf /usr/config/scummvm-grim/* /storage/.config/scummvm-grim/
+fi
+
+if [ ! -f "/storage/.config/scummvm-grim/scummvm.ini" ]; then
+    mkdir -p /storage/.config/scummvm-grim
+    cp -rf /usr/config/scummvm-grim/scummvm.ini /storage/.config/scummvm-grim/scummvm.ini
+fi
+
 case $1 in
   "libretro")
     GAME=$(cat "${GAME}" | awk 'BEGIN {FS="\""}; {print $2}')
@@ -64,10 +74,20 @@ case $1 in
   ;;
 
   *)
-    set_kill set "-9 scummvm"
-    GAME=$(cat "${GAME}")
-    systemctl start fluidsynth
-    eval /usr/bin/scummvm --fullscreen --joystick=0 --themepath=/usr/config/scummvm/themes "${GAME}"
-    systemctl stop fluidsynth
+    if [ "$4" == "scummvm-grim" ]; then
+        set_kill set "-9 scummvm-grim"
+        TARGET_ID=$(cat "${GAME}")
+        systemctl start fluidsynth
+        eval /usr/bin/scummvm-grim --config=/storage/.config/scummvm-grim/scummvm.ini \
+            --fullscreen --joystick=0 \
+            --themepath=/usr/config/scummvm-grim/themes --extrapath=/usr/local/share/scummvm-grim "${GAME}"
+        systemctl stop fluidsynth
+    else
+        set_kill set "-9 scummvm"
+        TARGET_ID=$(cat "${GAME}")
+        systemctl start fluidsynth
+        eval /usr/bin/scummvm --fullscreen --joystick=0 --themepath=/usr/config/scummvm/themes "${GAME}"
+        systemctl stop fluidsynth
+    fi
   ;;
 esac
