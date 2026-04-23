@@ -104,13 +104,13 @@ then
 fi
 
 ### Fix Japanese language bug
-if [ ! -e "/storage/.config/ppsspp/assets/NotoSansJP-Regular.ttf" ]
-then
-  cd /storage/.config/ppsspp/assets
-  cp /usr/config/ppsspp/assets/NotoSansJP-Regular.ttf .
-  ln -s NotoSansJP-Regular.ttf Roboto-Condensed.ttf
-  cd -
-fi
+#if [ ! -e "/storage/.config/ppsspp/assets/NotoSansJP-Regular.ttf" ]
+#then
+#  cd /storage/.config/ppsspp/assets
+#  cp /usr/config/ppsspp/assets/NotoSansJP-Regular.ttf .
+#  ln -s NotoSansJP-Regular.ttf Roboto-Condensed.ttf
+#  cd -
+#fi
 
 ### Add items below this line that are safe to remove after a period of time.
 ################################################################################
@@ -226,6 +226,10 @@ if [ ! -d "/storage/.config/mednafen/mednafen.cfg" ]; then
   sed -i "s/cd.image_memcache 1/cd.image_memcache 0/" /storage/.config/mednafen/mednafen.cfg
 fi
 
+# Update EmulationStation Resources
+rm -r /storage/.config/emulationstation/resources
+cp -rf /usr/config/emulationstation/resources /storage/.config/emulationstation/
+
 # Clean melonds-sa Gallium HUD config
 sed -i '/nds.show_fps=/d' /storage/.config/system/configs/system.cfg
 
@@ -316,3 +320,6 @@ sed -i '/gpuperf=profile_peak/d' /storage/.config/system/configs/system.cfg
 
 # Delete ares config file
 rm -rf /storage/.config/ares/settings.*
+
+# Delete gopher64 config file
+rm -rf /storage/.config/gopher64/config.json

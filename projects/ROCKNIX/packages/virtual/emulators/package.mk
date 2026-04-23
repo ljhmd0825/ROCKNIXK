@@ -9,7 +9,7 @@ PKG_LONGDESC="Emulation metapackage."
 PKG_TOOLCHAIN="manual"
 
 PKG_EMUS="amiberry box64 duckstation-sa flycast-sa gzdoom-sa hatarisa hypseus-singe moonlight mupen64plus-sa portmaster openbor pico-8   \
-          ppsspp-sa scummvmsa touchhle-sa vice-sa wine yabasanshiro-sa"
+          ppsspp-sa scummvmsa scummvm-grim touchhle-sa vice-sa wine yabasanshiro-sa"
 
 EMUS_32BIT=""
 
@@ -55,13 +55,13 @@ case "${DEVICE}" in
   SDM845|SM8250)
     [ "${ENABLE_32BIT}" == "true" ] && EMUS_32BIT="box86 daedalusx64-sa desmume-lr gpsp-lr pcsx_rearmed-lr"
     PKG_EMUS+=" aethersx2-sa azahar-sa bigpemu-sa cemu-sa dolphin-sa mednafen melonds-sa nanoboyadvance-sa rpcs3-sa supermodel-sa \
-                xemu-sa skyemu-sa steam vita3k-sa"
+                xemu-sa skyemu-sa steam vita3k-sa eden-sa"
     LIBRETRO_CORES+=" beetle-psx-lr beetle-saturn-lr bsnes-lr bsnes-hd-lr dolphin-lr kronos-lr"
     ;;
   SM8550)
     [ "${ENABLE_32BIT}" == "true" ] && EMUS_32BIT="box86 daedalusx64-sa desmume-lr gpsp-lr pcsx_rearmed-lr"
     PKG_EMUS+=" aethersx2-sa ares-sa azahar-sa bigpemu-sa cemu-sa dolphin-sa drastic-sa gopher64-sa mednafen melonds-sa nanoboyadvance-sa rpcs3-sa supermodel-sa \
-                xemu-sa skyemu-sa steam vita3k-sa"
+                xemu-sa skyemu-sa steam vita3k-sa eden-sa"
     LIBRETRO_CORES+=" beetle-psx-lr beetle-saturn-lr bsnes-lr bsnes-hd-lr dolphin-lr kronos-lr"
     ;;
   SM8650)
@@ -655,6 +655,15 @@ makeinstall_target() {
       ;;
   esac
 
+  ### Nintendo Switch
+  case ${DEVICE} in
+    SDM845|SM8250|SM8550|SM8650)
+      add_emu_core switch eden eden-sa true
+      add_es_system switch
+      install_script "Start Eden.sh"
+    ;;
+  esac
+
   ### Sega GameGear
   add_emu_core gamegear retroarch gearsystem true
   add_emu_core gamegear retroarch genesis_plus_gx false
@@ -1150,6 +1159,7 @@ makeinstall_target() {
 
   ### ScummVM
   add_emu_core scummvm scummvmsa scummvm true
+  add_emu_core scummvm scummvm-grim scummvm false
   add_emu_core scummvm retroarch scummvm false
   add_es_system scummvm
   add_system_dir /storage/roms/scummvm
@@ -1567,6 +1577,10 @@ makeinstall_target() {
   ### Palm OS
   add_emu_core palm retroarch mu true
   add_es_system palm
+
+  ### GamePark GP32
+  add_emu_core gp32 retroarch mame true
+  add_es_system gp32
 
   ### PC Ports
   add_emu_core ports portmaster portmaster true
