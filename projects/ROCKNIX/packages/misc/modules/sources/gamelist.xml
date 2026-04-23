@@ -443,6 +443,18 @@
         <image>./images/calibrate-gamepad.svg</image>
     </game>
     <game>
+        <path>./Save Miyoo Autocal.sh</path>
+        <name>Save Miyoo Autocal</name>
+        <desc>Save autocalibration so it persists. Delete .config/miyoo-serial-joypad and reboot to reset.</desc>
+        <developer>ROCKNIX</developer>
+        <publisher>ROCKNIX</publisher>
+        <rating>5.0</rating>
+        <releasedate>2026</releasedate>
+        <genre>Tool</genre>
+        <players>1</players>
+        <image>./images/calibrate-gamepad.svg</image>
+    </game>
+    <game>
         <path>./Mount NFS.sh</path>
         <name>NFS 마운트</name>
         <desc>/storage/.nfs-mount에 정의된 위치에 NFS 공유를 마운트하고 게임 내부 카드를 상위/쓰기 가능 위치로 병합된 스토리지를 생성합니다.</desc>

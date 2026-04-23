@@ -1,0 +1,108 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2024 JELOS (https://github.com/JustEnoughLinuxOS)
+#
+# Miyoo Flip: same behavior and arguments as quirks/platforms/RK3566/bin/ledcontrol
+# (ROCKNIX standard for sleep.sh, powerstate.sh, and the UI).
+#
+# DTS exposes one sysfs LED for the status/charging line (red:status). There is no
+# separate amber:charging device; "amber" in the menu and charging both use that GPIO.
+
+. /etc/profile.d/001-functions
+
+LED_PATH="/sys/class/leds"
+LED_STATUS=$(get_setting led.color)
+DEFAULT=green
+
+# Sysfs name for the red / status / charging GPIO (see rk3566-miyoo-flip.dts leds).
+LED_RED_SYSFS="red:status"
+
+function led_state() {
+  echo "${2}" >"${LED_PATH}/${1}/brightness"
+}
+
+function led_off() {
+    led_state green:power 0
+    led_state "${LED_RED_SYSFS}" 0
+}
+
+function brightness() {
+  led_off
+  case ${1} in
+    green)
+      led_state green:power $2
+    ;;
+    red)
+      led_state "${LED_RED_SYSFS}" $2
+    ;;
+    amber)
+      led_state "${LED_RED_SYSFS}" $2
+    ;;
+  esac
+}
+
+GETBRIGHTNESS=$(get_setting led.brightness)
+if [ ! -z "${2}" ]
+then
+  LEDBRIGHTNESS=${2}
+else
+  LEDBRIGHTNESS=${GETBRIGHTNESS:-max}
+fi
+
+# on first run (no setting) or on new brightness update settings
+if [ "${LEDBRIGHTNESS}" != "${GETBRIGHTNESS}" ]; then
+  set_setting led.brightness ${LEDBRIGHTNESS}
+fi
+
+# expand aliases
+case ${LEDBRIGHTNESS} in
+  max)
+    LEDBRIGHTNESS=255
+  ;;
+  mid)
+    LEDBRIGHTNESS=63
+  ;;
+  min)
+    LEDBRIGHTNESS=15
+  ;;
+esac
+
+# sleep.sh (post) and powerstate.sh invoke ledcontrol with no args when led.color is unset.
+if [ -z "${1}" ]; then
+  set -- "${LED_STATUS:-default}"
+fi
+
+case ${1} in
+  default)
+    del_setting led.color
+    brightness ${DEFAULT} ${LEDBRIGHTNESS}
+  ;;
+  green|red|amber|off)
+    brightness ${1} ${LEDBRIGHTNESS}
+    set_setting led.color ${1}
+  ;;
+  discharging)
+    brightness ${LED_STATUS:-${DEFAULT}} ${LEDBRIGHTNESS}
+  ;;
+  charging)
+    if [ ! "${LED_STATUS}" = "off" ]
+    then
+      brightness red ${LEDBRIGHTNESS}
+    fi
+  ;;
+  poweroff)
+    led_off
+  ;;
+  brightness)
+    brightness ${LED_STATUS:-${DEFAULT}} ${LEDBRIGHTNESS}
+  ;;
+  list)
+cat <<EOF
+default
+off
+green
+red
+amber
+EOF
+  ;;
+esac

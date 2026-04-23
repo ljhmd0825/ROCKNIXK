@@ -19,7 +19,14 @@ make_target() {
        ARCH=${TARGET_KERNEL_ARCH} \
        KSRC=$(kernel_path) \
        CROSS_COMPILE=${TARGET_KERNEL_PREFIX} \
-       CONFIG_POWER_SAVING=y
+       CONFIG_POWER_SAVING=y \
+       CONFIG_IPS_MODE=1 \
+       CONFIG_LPS_MODE=1 \
+       CONFIG_USB_AUTOSUSPEND=n \
+       CONFIG_WOWLAN=n \
+       CONFIG_MP_INCLUDED=n \
+       CONFIG_P2P=n \
+       CONFIG_TDLS=n
 }
 
 makeinstall_target() {

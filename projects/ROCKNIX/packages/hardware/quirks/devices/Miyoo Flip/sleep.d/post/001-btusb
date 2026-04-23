@@ -1,0 +1,27 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2025 ROCKNIX (https://github.com/ROCKNIX)
+
+# RTL8733BU combo chip: sync WiFi and BT rfkill state to settings after resume.
+# The rtl8733bu-power driver's resume hook re-applies GPIO based on its rfkill
+# state; sleep.sh itself handles start/stop of bluetooth.service and wifictl,
+# so this quirk only needs to make sure rfkill matches the user intent.
+# btusb stays loaded — GPIO-off handles USB disconnect; GPIO-on handles probe.
+# Note: BT connections (e.g. headphones) drop during sleep when the chip
+# powers off; the stack may auto-reconnect.
+
+. /etc/profile.d/001-functions
+
+if [ -e "/storage/.configured" ]; then
+  if [ "$(get_setting wifi.enabled)" = "1" ]; then
+    rfkill unblock wifi 2>/dev/null
+  else
+    rfkill block wifi 2>/dev/null
+  fi
+
+  if [ "$(get_setting controllers.bluetooth.enabled)" = "1" ]; then
+    rfkill unblock bluetooth 2>/dev/null
+  else
+    rfkill block bluetooth 2>/dev/null
+  fi
+fi
